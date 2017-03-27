@@ -59,12 +59,12 @@ namespace PX.Objects.SO
         public virtual DateTime? LogLineDate { get; set; }
 
         public abstract class logLine : IBqlField { }
-        [PXString(256, IsUnicode = true)]
+        [PXString(255, IsUnicode = true)]
         [PXUIField(DisplayName = "Barcode", Enabled = false)]
         public virtual string LogBarcode { get; set; }
 
         public abstract class logMessage : IBqlField { }
-        [PXString(256, IsUnicode = true)]
+        [PXString(255, IsUnicode = true)]
         [PXUIField(DisplayName = "Message", Enabled = false)]
         public virtual string LogMessage { get; set; }
     }
@@ -610,8 +610,17 @@ namespace PX.Objects.SO
             
             ScanLog scanLog = (ScanLog)this.ScanLogs.Cache.CreateInstance();
             scanLog.LogLineDate = PXTimeZoneInfo.Now;
-            scanLog.LogBarcode = doc.Barcode.Length <= maxCharLength ? doc.Barcode : doc.Barcode.Substring(0, maxCharLength);
-            scanLog.LogMessage = doc.Message.Length <= maxCharLength ? doc.Message : doc.Message.Substring(0, maxCharLength);
+
+            if(!String.IsNullOrEmpty(doc.Barcode))
+            {
+                scanLog.LogBarcode = doc.Barcode;
+            }
+
+            if(!String.IsNullOrEmpty(doc.Message))
+            {
+                scanLog.LogMessage = doc.Message;
+            }
+
             ScanLogs.Cache.Insert(scanLog);
         }
 
