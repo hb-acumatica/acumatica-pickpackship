@@ -15,7 +15,7 @@
 	        var baseUrl = (location.href.indexOf("HideScript") > 0) ? "../../" : "../../../";
 	        var edStatus = px_alls["edStatus"];
 
-	        if ((callbackContext.info.name == "confirm" || callbackContext.info.name == "confirmAll" || callbackContext.info.name == "scan") && edStatus != null) {
+	        if ((callbackContext.info.name == "confirm" || callbackContext.info.name == "confirmAll" || callbackContext.info.name == "scan" || callbackContext.info.name == "ElapsedTime") && callbackContext.control.longRunInProcess == null && edStatus != null) {
 	            if (edStatus.getValue() == "OK") {
 	                var audio = new Audio(baseUrl + 'Sounds/success.wav');
 	                audio.play();
@@ -25,7 +25,7 @@
 	                var audio = new Audio(baseUrl + 'Sounds/balloon.wav');
 	                audio.play();
 	                px_alls["edShipmentNbr"].focus();
-	            }
+s	            }
 	            else if (edStatus.getValue() == "SCN" || edStatus.getValue() == "INF") {
 	                var audio = new Audio(baseUrl + 'Sounds/balloon.wav');
 	                audio.play();
@@ -73,7 +73,6 @@
             <px:PXTextEdit ID="edBarcode" runat="server" DataField="Barcode">
                 <ClientEvents KeyDown="Barcode_KeyDown" />
             </px:PXTextEdit>
-            
             <px:PXCheckBox ID="edLotSerialSearch" runat="server" DataField="LotSerialSearch" />
             <px:PXLayoutRule runat="server" StartColumn="True" LabelsWidth="S" ControlSize="L" ColumnWidth="M" />
             <px:PXLayoutRule runat="server" ColumnSpan="2" />
@@ -126,6 +125,45 @@
                                     <px:PXGridColumn AllowNull="False" DataField="CompleteQtyMin" TextAlign="Right" Width="81px" />
                                     <px:PXGridColumn DataField="ShipComplete" Width="117px" RenderEditorText="True" />
                                 </Columns>
+                                <RowTemplate>
+                                    <px:PXLayoutRule runat="server" StartColumn="True" LabelsWidth="S" ControlSize="XM" />
+                                    <px:PXTextEdit ID="edOrigOrderType" runat="server" DataField="OrigOrderType" Enabled="False" />
+                                    <px:PXTextEdit ID="edOrigOrderNbr" runat="server" DataField="OrigOrderNbr" Enabled="False" />
+                                    <px:PXSegmentMask CommitChanges="True" ID="edInventoryID" runat="server" DataField="InventoryID" AllowEdit="True" />
+                                    <px:PXSegmentMask CommitChanges="True" ID="edSubItemID" runat="server" DataField="SubItemID" AutoRefresh="True">
+                                        <Parameters>
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.inventoryID" PropertyName="DataValues[&quot;InventoryID&quot;]" Type="String" />
+                                        </Parameters>
+                                    </px:PXSegmentMask>
+                                    <px:PXCheckBox ID="chkIsFree" runat="server" DataField="IsFree" Enabled="False" />
+                                    <px:PXSegmentMask CommitChanges="True" ID="edSiteID" runat="server" DataField="SiteID" AutoRefresh="True">
+                                        <Parameters>
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.inventoryID" PropertyName="DataValues[&quot;InventoryID&quot;]" Type="String" />
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.subItemID" PropertyName="DataValues[&quot;SubItemID&quot;]" Type="String" />
+                                        </Parameters>
+                                    </px:PXSegmentMask>
+                                    <px:PXSegmentMask ID="edLocationID" runat="server" DataField="LocationID" AutoRefresh="True">
+                                        <Parameters>
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.siteID" PropertyName="DataValues[&quot;SiteID&quot;]" Type="String" />
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.inventoryID" PropertyName="DataValues[&quot;InventoryID&quot;]" Type="String" />
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.subItemID" PropertyName="DataValues[&quot;SubItemID&quot;]" Type="String" />
+                                        </Parameters>
+                                    </px:PXSegmentMask>
+                                    <px:PXSelector CommitChanges="True" ID="edUOM" runat="server" DataField="UOM">
+                                        <Parameters>
+                                            <px:PXControlParam ControlID="grid" Name="SOShipLine.inventoryID" PropertyName="DataValues[&quot;InventoryID&quot;]" Type="String" />
+                                        </Parameters>
+                                    </px:PXSelector>
+                                    <px:PXNumberEdit ID="edShippedQty" runat="server" DataField="ShippedQty" />
+                                    <px:PXNumberEdit ID="edOrigOrderQty" runat="server" DataField="OrigOrderQty" Enabled="False" />
+                                    <px:PXLayoutRule runat="server" ColumnSpan="2" />
+                                    <px:PXTextEdit ID="edTranDesc" runat="server" DataField="TranDesc" />
+                                    <px:PXLayoutRule runat="server" StartColumn="True" LabelsWidth="S" ControlSize="XM" />
+                                    <px:PXTextEdit ID="edShipmentNbr" runat="server" DataField="ShipmentNbr" />
+                                    <px:PXNumberEdit ID="edLineNbr" runat="server" DataField="LineNbr" />
+                                    <px:PXDropDown ID="edShipComplete" runat="server" AllowNull="False" DataField="ShipComplete" />
+                                </RowTemplate>
+                                <Layout FormViewHeight="" />
                             </px:PXGridLevel>
                         </Levels>
                         <ActionBar>
