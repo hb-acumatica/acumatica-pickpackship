@@ -1,3 +1,5 @@
 ﻿<Table TableName="Carrier">
-    <Column TableName="Carrier" ColumnName="ReturnLabel" ColumnType="bool" AllowNull="True" MaxLength="25" DecimalPrecision="2" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="Carrier" ColumnName="ReturnLabel" ColumnType="bool" DefaultValue="0" MaxLength="25" DecimalPrecision="2" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="Carrier" ColumnName="IsExternalShippingApplication" ColumnType="bool" DefaultValue="0" MaxLength="25" DecimalPrecision="2" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="Carrier" ColumnName="ShippingApplicationType" ColumnType="string" AllowNull="True" MaxLength="3" DecimalPrecision="2" DecimalLength="3" IsNewColumn="True" IsUnicode="True" />
 </Table>

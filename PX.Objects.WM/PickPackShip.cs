@@ -1183,6 +1183,16 @@ namespace PX.Objects.SO
                 return;
             }
 
+            bool isExternalShippingApplication = false;
+            string shippingApplicationType = null;
+            var carrier = (Carrier)PXSelectorAttribute.Select<SOShipment.shipVia>(graph.Document.Cache, graph.Document.Current);
+            if(carrier != null)
+            { 
+                var carrierExt = PXCache<Carrier>.GetExtension<CarrierExt>(carrier);
+                isExternalShippingApplication = carrierExt.IsExternalShippingApplication.GetValueOrDefault();
+                shippingApplicationType = carrierExt.ShippingApplicationType;
+            }
+
             if (confirmMode == ConfirmMode.AllItems || !IsConfirmationNeeded() ||
                 this.Document.Ask(PXMessages.LocalizeNoPrefix(WM.Messages.ShipmentQuantityMismatchPrompt), MessageButtons.YesNo) == PX.Data.WebDialogResult.Yes)
             {
@@ -1206,23 +1216,29 @@ namespace PX.Objects.SO
                         {
                             UpdateShipmentLinesWithPickResults(graph);
                         }
-
                         UpdateShipmentPackages(graph);
 
-                        PXAction action = graph.Actions["Action"];
-                        var adapter = new PXAdapter(new DummyView(graph, graph.Document.View.BqlSelect, new List<object> { graph.Document.Current }));
-                        
-                        adapter.Menu = SOShipmentEntryActionsAttribute.Messages.ConfirmShipment;
-
-                        try
-                        {
-                            action.PressButton(adapter);
+                        if (isExternalShippingApplication)
+                        { 
+                            //In this mode, the shipment is confirmed by the external shipping integration after pushing back freight cost and tracking numbers
                         }
-                        catch
+                        else
                         {
-                            // Shitty work-around - IPXCustomInfo::Complete() doesn't appear to work as advertised when long-run operation completes in <5 seconds. Needs to be fixed.
-                            System.Threading.Thread.Sleep(5000);
-                            throw;
+                            PXAction action = graph.Actions["Action"];
+                            var adapter = new PXAdapter(new DummyView(graph, graph.Document.View.BqlSelect, new List<object> { graph.Document.Current }));
+
+                            adapter.Menu = SOShipmentEntryActionsAttribute.Messages.ConfirmShipment;
+
+                            try
+                            {
+                                action.PressButton(adapter);
+                            }
+                            catch
+                            {
+                                // Shitty work-around - IPXCustomInfo::Complete() doesn't appear to work as advertised when long-run operation completes in <5 seconds. Needs to be fixed.
+                                System.Threading.Thread.Sleep(5000);
+                                throw;
+                            }
                         }
 
                         PreparePrintJobs(graph);
@@ -1243,6 +1259,17 @@ namespace PX.Objects.SO
 
                         ClearScreen(true);
                         this.Document.Update(doc);
+
+                        if(isExternalShippingApplication)
+                        {
+                            // We can't directly redirect this page to our custom URL protocol handler, or else the long-run process will continue spinning indefinitely. We go through an intermediate HTML page that does it.
+                            throw new PXRedirectToUrlException($"../../Frames/ShipmentAppLauncher.html?ShipmentApplicationType={shippingApplicationType}&ShipmentNbr={shipment.ShipmentNbr}", PXBaseRedirectException.WindowMode.NewWindow, true, string.Empty);
+                        } 
+                    }
+                    catch(PXRedirectToUrlException)
+                    {
+                        //Just rethrow, bypassing our standard exception handling mechanism
+                        throw;
                     }
                     catch (Exception e)
                     {
@@ -1268,7 +1295,7 @@ namespace PX.Objects.SO
                 cache.Clear();
             }
         }
-
+        
         protected virtual void PreparePrintJobs(SOShipmentEntry graph)
         {
             PrintJobMaint jobMaint = null;
@@ -1490,7 +1517,7 @@ namespace PX.Objects.SO
 
         public void Complete(PXLongRunStatus status, PXGraph graph)
         {
-            if(status == PXLongRunStatus.Aborted && graph is PickPackShip)
+            if(status == PXLongRunStatus.Aborted)
             {
                 var cacheCollection = PXContext.SessionTyped<PXSessionStatePXData>().PXParamValue[ParamCaches] as PXCacheCollection;
                 if(cacheCollection != null)
