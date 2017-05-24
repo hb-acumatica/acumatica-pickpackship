@@ -152,6 +152,8 @@ namespace PX.Objects.SO
 
     public class PickPackShip : PXGraph<PickPackShip>
     {
+        internal bool IgnoreClear = false;
+
         public enum ConfirmMode
         {
             PickedItems,
@@ -182,6 +184,15 @@ namespace PX.Objects.SO
             if (DateTime.Now > new DateTime(2017, 6, 30))
             {
                 throw new PXException("Pick, Pack and Ship: Evaluation period expired.");
+            }
+        }
+
+        public override void Clear(PXClearOption option)
+        {
+            //See comments in Complete function inside PickPackShipCacheManager cache below.
+            if (!IgnoreClear)
+            {
+                base.Clear(option);
             }
         }
 
@@ -497,10 +508,15 @@ namespace PX.Objects.SO
             this.Document.Current.CurrentExpirationDate = null;
             this.Document.Current.CurrentPackageLineNbr = null;
             this.Transactions.Cache.Clear();
+            this.Transactions.Cache.ClearQueryCache();
             this.Splits.Cache.Clear();
+            this.Splits.Cache.ClearQueryCache();
             this.ScanLogs.Cache.Clear();
+            this.ScanLogs.Cache.ClearQueryCache();
             this.Packages.Cache.Clear();
+            this.Packages.Cache.ClearQueryCache();
             this.PackageSplits.Cache.Clear();
+            this.PackageSplits.Cache.ClearQueryCache();
         }
 
         protected virtual void ProcessItemBarcode(string barcode)
@@ -756,6 +772,7 @@ namespace PX.Objects.SO
             else
             {
                 var newPackage = (SOPackageDetailPick)this.Packages.Cache.CreateInstance();
+                newPackage.ShipmentNbr = doc.ShipmentNbr;
                 newPackage.BoxID = box.BoxID;
                 newPackage.Description = PXMessages.LocalizeFormatNoPrefix(WM.Messages.PackageForShipment, doc.ShipmentNbr);
                 newPackage = this.Packages.Insert(newPackage);
@@ -1196,16 +1213,11 @@ namespace PX.Objects.SO
             if (confirmMode == ConfirmMode.AllItems || !IsConfirmationNeeded() ||
                 this.Document.Ask(PXMessages.LocalizeNoPrefix(WM.Messages.ShipmentQuantityMismatchPrompt), MessageButtons.YesNo) == PX.Data.WebDialogResult.Yes)
             {
-                // When you confirm the shipment, system starts a long-run operation to invoke Confirm on the shipment screen. 
-                // If any error is raised during the confirm shipment (ex: "At least one package is required."), the process aborts. 
-                // The problem is that normal behaviour in Acumatica is to refresh the screen completely, reloading from DB. 
-                // The result is that you loose all the state that was stored in caches as part of the picking/packing process, and have to start over.
-                // CacheManager works around that limitation by storing caches in session state and retrieving it if an error occurs.
                 var cacheManager = new PickPackShipCacheManager();
-                cacheManager.SaveState(this);
 
                 PXLongOperation.StartOperation(this, () =>
                 {
+
                     try
                     {
                         PXLongOperation.SetCustomInfo(cacheManager);
@@ -1228,17 +1240,7 @@ namespace PX.Objects.SO
                             var adapter = new PXAdapter(new DummyView(graph, graph.Document.View.BqlSelect, new List<object> { graph.Document.Current }));
 
                             adapter.Menu = SOShipmentEntryActionsAttribute.Messages.ConfirmShipment;
-
-                            try
-                            {
-                                action.PressButton(adapter);
-                            }
-                            catch
-                            {
-                                // Shitty work-around - IPXCustomInfo::Complete() doesn't appear to work as advertised when long-run operation completes in <5 seconds. Needs to be fixed.
-                                System.Threading.Thread.Sleep(5000);
-                                throw;
-                            }
+                            action.PressButton(adapter);
                         }
 
                         PreparePrintJobs(graph);
@@ -1508,23 +1510,17 @@ namespace PX.Objects.SO
 
     public class PickPackShipCacheManager : IPXCustomInfo
     {
-        public const string ParamCaches = "Caches$PickPackShip";
-
-        public void SaveState(PXGraph graph)
-        {
-            PXContext.SessionTyped<PXSessionStatePXData>().PXParamValue[ParamCaches] = graph.Caches;
-        }
-
         public void Complete(PXLongRunStatus status, PXGraph graph)
         {
-            if(status == PXLongRunStatus.Aborted)
+            // AC-86693
+            // When you confirm the shipment, system starts a long-run operation to invoke Confirm on the shipment screen. 
+            // If any error is raised during the confirm shipment (ex: "At least one package is required."), the process aborts. 
+            // The problem is that normal behaviour in Acumatica is to clear caches, and reload from DB. 
+            // The result is that you loose all the state that was stored in caches as part of the picking/packing process, and have to start over.
+            // This flag works around that limitation by blocking Clear() call on the graph after abortion of the long-run operation.
+            if (status == PXLongRunStatus.Aborted && graph is PickPackShip)
             {
-                var cacheCollection = PXContext.SessionTyped<PXSessionStatePXData>().PXParamValue[ParamCaches] as PXCacheCollection;
-                if(cacheCollection != null)
-                { 
-                    graph.Caches = cacheCollection;
-                }
-                PXContext.SessionTyped<PXSessionStatePXData>().PXParamValue[ParamCaches] = null;
+                ((PickPackShip)graph).IgnoreClear = true;
             }
         }
     }
