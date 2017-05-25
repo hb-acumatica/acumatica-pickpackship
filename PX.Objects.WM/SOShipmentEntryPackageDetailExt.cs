@@ -14,15 +14,14 @@ namespace PX.Objects.SO
             Where<SOPackageDetailSplit.shipmentNbr, Equal<Current<SOPackageDetail.shipmentNbr>>,
             And<SOPackageDetailSplit.lineNbr, Equal<Current<SOPackageDetail.lineNbr>>>>> PackageDetailSplit;
 
-        protected void SOShipment_RowSelected(PXCache sender, PXRowSelectedEventArgs e)
+        protected virtual void SOPackageDetail_RowSelected(PXCache sender, PXRowSelectedEventArgs e)
         {
-            //TODO: Update automation rules and remove this code - this is only temporary while this code is being executed as customization
+            PackageDetailSplit.Cache.AllowInsert = Base.Packages.AllowInsert && e.Row != null;
             PackageDetailSplit.AllowDelete = Base.Packages.AllowDelete;
-            PackageDetailSplit.AllowInsert = Base.Packages.AllowInsert;
             PackageDetailSplit.AllowSelect = Base.Packages.AllowSelect;
             PackageDetailSplit.AllowUpdate = Base.Packages.AllowUpdate;
         }
-        
+
         protected virtual void SOPackageDetailSplit_RowInserted(PXCache sender, PXRowInsertedEventArgs e)
         {
             UpdateParentShipmentLine(sender, (SOPackageDetailSplit) e.Row, null);

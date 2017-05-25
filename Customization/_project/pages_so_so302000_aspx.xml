@@ -222,6 +222,8 @@
                                     </AddItem>
                                 </Children>
                                 <Prop Key="Mode.InitNewRow" Value="True" />
+                                <Prop Key="AutoCallBack.Behavior.CommitChanges" Value="True" />
+                                <Prop Key="AutoCallBack.Behavior.RepaintControlsIDs" Value="gridPackageDetailSplit" />
                             </PXGrid>
                         </AddItem>
                     </Children>
