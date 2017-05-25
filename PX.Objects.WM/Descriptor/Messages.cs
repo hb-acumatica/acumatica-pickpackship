@@ -98,7 +98,9 @@ namespace PX.Objects.WM
         public const string ShipmentNbrMissing = "Shipment {0} not found.";
         public const string ShipmentQuantityMismatchPrompt = "The quantity picked for one or more lines doesn't match with the shipment. Do you want to continue?";
         public const string ShipmentReady = "Shipment {0} loaded and ready to pick.";
-        public const string PackageDetailsMismatch = "Package details don't match shipment details.";
+        public const string ShipmentLineQuantityNotPacked = "One or more lines for item '{0}' have quantities that have not been packed.";
+        public const string QuantityPackedExceedsShippedQuantityForLine = "The quantity packed exceeds the quantity shipped for this line.";
+
         public const string PackageForShipment = "Package for shipment {0}";
         #endregion
     }

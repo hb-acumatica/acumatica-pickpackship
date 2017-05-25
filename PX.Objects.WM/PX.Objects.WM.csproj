@@ -59,6 +59,7 @@
     <Compile Include="DAC\SOPackageDetailPick.cs" />
     <Compile Include="DAC\SOPackageDetailSplit.cs" />
     <Compile Include="DAC\SOPickPackShipUserSetup.cs" />
+    <Compile Include="DAC\SOShipLineExt.cs" />
     <Compile Include="DAC\SOShipLinePick.cs" />
     <Compile Include="DAC\SOShipLineSplitPick.cs" />
     <Compile Include="Descriptor\Messages.cs" />

@@ -219,6 +219,17 @@ namespace PX.Objects.SO
             ConfirmAll.SetEnabled(doc != null && doc.ShipmentNbr != null);
         }
 
+        [PXMergeAttributes(Method = MergeMethod.Append)]
+        [PXUIField(DisplayName = "Shipment Line Nbr.")]
+        protected virtual void SOShipLineSplitPick_LineNbr_CacheAttached(PXCache sender)
+        {
+        }
+
+        [PXMergeAttributes(Method = MergeMethod.Merge)]
+        [PXUIField(DisplayName = "Line Nbr.", Visible = true)]
+        protected virtual void SOShipLinePick_LineNbr_CacheAttached(PXCache sender)
+        {
+        }
 
         protected void PickPackInfo_ShipmentNbr_FieldUpdated(PXCache sender, PXFieldUpdatedEventArgs e)
         {
@@ -1018,7 +1029,7 @@ namespace PX.Objects.SO
                 pickLine.PickedQty = pickLine.PickedQty.GetValueOrDefault() + quantityForCurrentPickLine;
                 this.Transactions.Update(pickLine);
 
-                AddPickToCurrentLineSplits(locationID, lotSerialNumber, expirationDate, quantityForCurrentPickLine);
+                AddPickToCurrentLineSplits(locationID ?? pickLine.LocationID, lotSerialNumber, expirationDate, quantityForCurrentPickLine);
 
                 quantity = quantity - quantityForCurrentPickLine;
 
@@ -1033,7 +1044,7 @@ namespace PX.Objects.SO
                 //All the lines are already filled; just over-pick the first one.
                 firstMatchingLine.PickedQty = firstMatchingLine.PickedQty.GetValueOrDefault() + quantity;
                 this.Transactions.Update(firstMatchingLine);
-                AddPickToCurrentLineSplits(locationID, lotSerialNumber, expirationDate, quantity.GetValueOrDefault());
+                AddPickToCurrentLineSplits(locationID ?? firstMatchingLine.LocationID, lotSerialNumber, expirationDate, quantity.GetValueOrDefault());
 
                 return true;
             }
@@ -1053,7 +1064,7 @@ namespace PX.Objects.SO
                 foreach (SOShipLineSplitPick split in this.Splits.Select())
                 {
                     // Splits are linked to the corresponding package line number. If this is a new package, PackageLineNbr will be null.
-                    if (split.LocationID == locationID && split.PackageLineNbr == this.Document.Current.CurrentPackageLineNbr)
+                    if (split.LocationID == locationID && (split.PackageLineNbr == this.Document.Current.CurrentPackageLineNbr || split.PackageLineNbr == null && this.Document.Current.CurrentPackageLineNbr == null))
                     {
                         split.Qty += quantity;
                         this.Splits.Update(split);
@@ -1417,13 +1428,12 @@ namespace PX.Objects.SO
                     if (split.PackageLineNbr == package.LineNbr)
                     {
                         SOPackageDetailSplit packageSplit = (SOPackageDetailSplit)graph.Caches[typeof(SOPackageDetailSplit)].CreateInstance();
+                        packageSplit.ShipmentLineNbr = split.LineNbr;
                         packageSplit.InventoryID = split.InventoryID;
                         packageSplit.SubItemID = split.SubItemID;
                         packageSplit.Qty = split.Qty;
                         packageSplit.UOM = split.UOM;
                         packageSplit.BaseQty = split.BaseQty;
-                        packageSplit.LotSerialNbr = split.LotSerialNbr;
-                        packageSplit.ExpireDate = split.ExpireDate;
 
                         //TODO: Replace with actual view when integrating into Acumatica codebase
                         graph.Caches[typeof(SOPackageDetailSplit)].Insert(packageSplit);

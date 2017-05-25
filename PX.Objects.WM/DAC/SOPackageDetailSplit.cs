@@ -15,6 +15,7 @@
         [PXDBString(15, IsUnicode = true, IsKey = true, InputMask = "")]
         [PXDBDefault(typeof(SOShipment.shipmentNbr))]
         [PXParent(typeof(Select<SOPackageDetail, Where<SOPackageDetail.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>, And<SOPackageDetail.lineNbr, Equal<Current<SOPackageDetailSplit.lineNbr>>>>>))]
+        [PXParent(typeof(Select<SOShipLine, Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>, And<SOShipLine.lineNbr, Equal<Current<SOPackageDetailSplit.shipmentLineNbr>>>>>))]
         public virtual String ShipmentNbr { get; set; }
         #endregion
         #region LineNbr
@@ -30,34 +31,35 @@
         [PXLineNbr(typeof(SOShipment.lineCntr), false)]
         public virtual Int32? SplitLineNbr { get; set; }
         #endregion
+        #region ShipmentLineNbr
+        public abstract class shipmentLineNbr : PX.Data.IBqlField { }
+        [PXDBInt()]
+        [PXDefault]
+        [PXSelector(typeof(Search<SOShipLine.lineNbr, Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>>>),
+            new[] { typeof(SOShipLine.lineNbr),
+                typeof(SOShipLine.inventoryID),
+                typeof(SOShipLine.tranDesc),
+                typeof(SOShipLine.shippedQty),
+                typeof(SOShipLineExt.packedQty),
+                typeof(SOShipLine.uOM) })]
+        [PXUIField(DisplayName = "Shipment Line Nbr.")]
+        public virtual Int32? ShipmentLineNbr { get; set; }
+        #endregion
         #region InventoryID
         public abstract class inventoryID : PX.Data.IBqlField { }
-        [Inventory]
+        [Inventory(Enabled = false)]
         [PXDefault]
         public virtual Int32? InventoryID { get; set; }
         #endregion
         #region SubItemID
         public abstract class subItemID : PX.Data.IBqlField { }
-        [IN.SubItem(typeof(SOPackageDetailSplit.inventoryID))]
+        [IN.SubItem(typeof(SOPackageDetailSplit.inventoryID), Enabled = false)]
         [PXDefault]
         public virtual Int32? SubItemID { get; set; }
         #endregion
-        #region LotSerialNbr
-        public abstract class lotSerialNbr : PX.Data.IBqlField { }
-        [PXDBString(100, IsUnicode = true)]
-        [PXUIField(DisplayName = "Lot/Serial Nbr.", FieldClass = "LotSerial")]
-        public virtual String LotSerialNbr { get; set; }
-        #endregion
-        #region ExpireDate
-        public abstract class expireDate : PX.Data.IBqlField { }
-        [PXDBDate]
-        [PXUIField(DisplayName = "Expiration Date", FieldClass = "LotSerial")]
-        public virtual DateTime? ExpireDate { get; set; }
-        #endregion
         #region UOM
         public abstract class uOM : PX.Data.IBqlField { }
-        [INUnit(typeof(SOPackageDetailSplit.inventoryID), DisplayName = "UOM")]
-        [PXDefault(typeof(SOShipLine.uOM))]
+        [INUnit(typeof(SOPackageDetailSplit.inventoryID), DisplayName = "UOM", Enabled = false)]
         public virtual String UOM { get; set; }
         #endregion
         #region Qty

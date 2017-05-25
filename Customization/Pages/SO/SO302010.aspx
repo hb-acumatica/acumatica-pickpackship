@@ -25,7 +25,7 @@
 	                var audio = new Audio(baseUrl + 'Sounds/balloon.wav');
 	                audio.play();
 	                px_alls["edShipmentNbr"].focus();
-s	            }
+	            }
 	            else if (edStatus.getValue() == "SCN" || edStatus.getValue() == "INF") {
 	                var audio = new Audio(baseUrl + 'Sounds/balloon.wav');
 	                audio.play();
@@ -204,12 +204,11 @@ s	            }
 				                <Levels>
 			                        <px:PXGridLevel DataMember="PackageSplits">
 					                    <Columns>
+                                            <px:PXGridColumn DataField="LineNbr" Width="100" />
 				                            <px:PXGridColumn DataField="InventoryID" Width="200px" />
 			                                <px:PXGridColumn DataField="SubItemID" Width="120" />
 				                            <px:PXGridColumn DataField="Qty" Width="100" />
 				                            <px:PXGridColumn DataField="UOM" Width="70" />
-			                                <px:PXGridColumn DataField="LotSerialNbr" Width="200" />
-			                                <px:PXGridColumn DataField="ExpireDate" Width="90" />
 						                </Columns>
 						            </px:PXGridLevel>
 						        </Levels>                
