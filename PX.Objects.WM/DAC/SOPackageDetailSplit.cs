@@ -39,6 +39,8 @@
             Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>, 
                 And<SOShipLineExt.packedQty, Less<SOShipLine.shippedQty>>>>),
             new[] { typeof(SOShipLine.lineNbr),
+                typeof(SOShipLine.origOrderType),
+                typeof(SOShipLine.origOrderNbr),
                 typeof(SOShipLine.inventoryID),
                 typeof(SOShipLine.tranDesc),
                 typeof(SOShipLine.shippedQty),
