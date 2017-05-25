@@ -114,8 +114,23 @@ namespace PX.Objects.SO
         [PXOverride]
         public virtual void ShipPackages(SOShipment shiporder, ShipPackagesDelegate baseMethod)
         {
-            ValidatePackagedQuantities(shiporder);
-            GenerateReturnLabels(shiporder);
+            Carrier carrier = PXSelect<Carrier, Where<Carrier.carrierID, Equal<Required<SOShipment.shipVia>>>>.Select(Base, shiporder.ShipVia);
+            if (carrier != null)
+            {
+                var ext = PXCache<Carrier>.GetExtension<CS.CarrierExt>(carrier);
+
+                if (ext.ValidatePackedQty == true)
+                {
+                    ValidatePackagedQuantities(shiporder);
+                }
+
+                //Automatically print return label if enabled for selected ship via
+                if (carrier.IsExternal == true && shiporder.ShippedViaCarrier != true && ext.ReturnLabel == true)
+                {
+                    Base.GetReturnLabels(shiporder);
+                }
+            }
+
             baseMethod(shiporder);
         }
         
@@ -136,20 +151,6 @@ namespace PX.Objects.SO
                             throw new PXException(PX.Objects.WM.Messages.ShipmentLineQuantityNotPacked, item?.InventoryCD.Trim());
                         }
                     }
-                }
-            }
-        }
-
-        protected virtual void GenerateReturnLabels(SOShipment shiporder)
-        {
-            Carrier carrier = PXSelect<Carrier, Where<Carrier.carrierID, Equal<Required<SOShipment.shipVia>>>>.Select(Base, shiporder.ShipVia);
-            if (carrier != null && carrier.IsExternal == true && shiporder.ShippedViaCarrier != true)
-            {
-                //Automatically print return label if enabled for selected ship via
-                var ext = PXCache<Carrier>.GetExtension<CS.CarrierExt>(carrier);
-                if (ext.ReturnLabel == true)
-                {
-                    Base.GetReturnLabels(shiporder);
                 }
             }
         }

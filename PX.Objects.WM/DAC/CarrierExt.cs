@@ -12,6 +12,12 @@ namespace PX.Objects.CS
         [PXUIField(DisplayName = "Generate Return Label Automatically")]
         public virtual bool? ReturnLabel { get; set; }
 
+        public abstract class validatePackedQty : PX.Data.IBqlField { }
+        [PXDBBool]
+        [PXDefault(false)]
+        [PXUIField(DisplayName = "Validate Packed Quantities")]
+        public virtual bool? ValidatePackedQty { get; set; }
+
         public abstract class isExternalShippingApplication : PX.Data.IBqlField { }
         [PXDBBool]
         [PXDefault(false)]
