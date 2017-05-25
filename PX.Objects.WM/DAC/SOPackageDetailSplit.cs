@@ -35,7 +35,9 @@
         public abstract class shipmentLineNbr : PX.Data.IBqlField { }
         [PXDBInt()]
         [PXDefault]
-        [PXSelector(typeof(Search<SOShipLine.lineNbr, Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>>>),
+        [PXSelector(typeof(Search<SOShipLine.lineNbr, 
+            Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>, 
+                And<SOShipLineExt.packedQty, Less<SOShipLine.shippedQty>>>>),
             new[] { typeof(SOShipLine.lineNbr),
                 typeof(SOShipLine.inventoryID),
                 typeof(SOShipLine.tranDesc),
