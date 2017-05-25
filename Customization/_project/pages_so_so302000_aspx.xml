@@ -221,6 +221,7 @@
                                         </PXToolBarButton>
                                     </AddItem>
                                 </Children>
+                                <Prop Key="Mode.InitNewRow" Value="True" />
                             </PXGrid>
                         </AddItem>
                     </Children>
