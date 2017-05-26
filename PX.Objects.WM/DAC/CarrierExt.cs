@@ -15,7 +15,7 @@ namespace PX.Objects.CS
         public abstract class validatePackedQty : PX.Data.IBqlField { }
         [PXDBBool]
         [PXDefault(false)]
-        [PXUIField(DisplayName = "Validate Packed Quantities")]
+        [PXUIField(DisplayName = "Validate Packed Quantities on Shipment Confirmation")]
         public virtual bool? ValidatePackedQty { get; set; }
 
         public abstract class isExternalShippingApplication : PX.Data.IBqlField { }
