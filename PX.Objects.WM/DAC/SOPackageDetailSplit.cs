@@ -36,8 +36,7 @@
         [PXDBInt()]
         [PXDefault]
         [PXSelector(typeof(Search<SOShipLine.lineNbr, 
-            Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetailSplit.shipmentNbr>>, 
-                And<SOShipLineExt.packedQty, Less<SOShipLine.shippedQty>>>>),
+            Where<SOShipLine.shipmentNbr, Equal<Current<SOPackageDetail.shipmentNbr>>>>),
             new[] { typeof(SOShipLine.lineNbr),
                 typeof(SOShipLine.origOrderType),
                 typeof(SOShipLine.origOrderNbr),
@@ -45,7 +44,8 @@
                 typeof(SOShipLine.tranDesc),
                 typeof(SOShipLine.shippedQty),
                 typeof(SOShipLineExt.packedQty),
-                typeof(SOShipLine.uOM) })]
+                typeof(SOShipLine.uOM) }, DirtyRead = true)]
+        [PXRestrictor(typeof(Where<SOShipLineExt.packedQty, Less<SOShipLine.shippedQty>>), PX.Objects.WM.Messages.QuantityPackedExceedsShippedQuantityForLine)]
         [PXUIField(DisplayName = "Shipment Line Nbr.")]
         public virtual Int32? ShipmentLineNbr { get; set; }
         #endregion
