@@ -4,11 +4,15 @@
 <%@ MasterType VirtualPath="~/MasterPages/FormDetail.master" %>
 <asp:content id="cont1" contentplaceholderid="phDS" runat="Server">
 	<script language="javascript" type="text/javascript">
-	    function Barcode_KeyDown(ctrl, e) {
-	        if (e.keyCode === 13) { //Enter key 
-	            var ds = px_alls["ds"];
-	            ds.executeCallback("scan");
-	        }
+	    function Barcode_Initialize(ctrl) {
+			ctrl.element.addEventListener('keydown', function(e) {
+	            if (e.keyCode === 13) { //Enter key 
+	                e.preventDefault();
+					e.stopPropagation();
+	                var ds = px_alls["ds"];
+	                ds.executeCallback("scan");
+				}
+	        });
 	    }
 
 	    function ActionCallback(callbackContext) {
@@ -19,22 +23,18 @@
 	            if (edStatus.getValue() == "OK") {
 	                var audio = new Audio(baseUrl + 'Sounds/success.wav');
 	                audio.play();
-	                px_alls["edShipmentNbr"].focus();
 	            }
 	            else if (edStatus.getValue() == "CLR") {
 	                var audio = new Audio(baseUrl + 'Sounds/balloon.wav');
 	                audio.play();
-	                px_alls["edShipmentNbr"].focus();
 	            }
 	            else if (edStatus.getValue() == "SCN" || edStatus.getValue() == "INF") {
 	                var audio = new Audio(baseUrl + 'Sounds/balloon.wav');
 	                audio.play();
-	                px_alls["edBarcode"].focus();
 	            }
 	            else if (edStatus.getValue() == "ERR") {
 	                var audio = new Audio(baseUrl + 'Sounds/asterisk.wav');
 	                audio.play();
-	                px_alls["edBarcode"].focus();
 	            }
 	        }
 	    };
@@ -69,14 +69,14 @@
 	<px:PXFormView ID="form" runat="server" DataSourceID="ds" Height="100px" Width="100%" Visible="true" DataMember="Document" DefaultControlID="edShipmentNbr">
         <Template>
             <px:PXLayoutRule runat="server" StartColumn="True" LabelsWidth="S" ControlSize="L" />
-			<px:PXSelector ID="edShipmentNbr" runat="server" DataField="ShipmentNbr" AutoRefresh="true" AllowEdit="true" CommitChanges="true" AutoComplete="false" />
             <px:PXTextEdit ID="edBarcode" runat="server" DataField="Barcode">
-                <ClientEvents KeyDown="Barcode_KeyDown" />
-            </px:PXTextEdit>
+                <ClientEvents Initialize="Barcode_Initialize" />
+            </px:PXTextEdit>            
+			<px:PXSelector ID="edShipmentNbr" runat="server" DataField="ShipmentNbr" AutoRefresh="true" AllowEdit="true" CommitChanges="true" AutoComplete="false" />
             <px:PXCheckBox ID="edLotSerialSearch" runat="server" DataField="LotSerialSearch" />
             <px:PXLayoutRule runat="server" StartColumn="True" LabelsWidth="S" ControlSize="L" ColumnWidth="M" />
             <px:PXLayoutRule runat="server" ColumnSpan="2" />
-            <px:PXTextEdit ID="edMessage" runat="server" DataField="Message" Width="640px" Style="font-size: 12pt; font-weight: bold;" SuppressLabel="true" />
+            <px:PXTextEdit ID="edMessage" runat="server" DataField="Message" Width="640px" Style="font-size: 10pt; font-weight: bold;" SuppressLabel="true" />
             <px:PXNumberEdit ID="edQuantity" runat="server" DataField="Quantity" />
             <px:PXLayoutRule runat="server" StartColumn="True" LabelsWidth="S" ControlSize="M" />
             <px:PXGroupBox ID="gbMode" runat="server" Caption="Scan Mode" DataField="ScanMode" RenderSimple="True" RenderStyle="Simple">

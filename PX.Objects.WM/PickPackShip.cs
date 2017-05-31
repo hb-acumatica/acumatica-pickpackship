@@ -60,7 +60,7 @@ namespace PX.Objects.SO
 
         public abstract class logLine : IBqlField { }
         [PXString(255, IsUnicode = true)]
-        [PXUIField(DisplayName = "Barcode", Enabled = false)]
+        [PXUIField(DisplayName = "Scan", Enabled = false)]
         public virtual string LogBarcode { get; set; }
 
         public abstract class logMessage : IBqlField { }
@@ -74,7 +74,7 @@ namespace PX.Objects.SO
         public abstract class shipmentNbr : IBqlField { }
         [PXString(15, IsUnicode = true, InputMask = ">CCCCCCCCCCCCCCC")]
         [PXDefault()]
-        [PXUIField(DisplayName = "Shipment Nbr.", Visibility = PXUIVisibility.SelectorVisible)]
+        [PXUIField(DisplayName = "Shipment Nbr.", Enabled = false, Visibility = PXUIVisibility.SelectorVisible)]
         [PXSelector(typeof(Search2<SOShipment.shipmentNbr,
             InnerJoin<INSite, On<INSite.siteID, Equal<SOShipment.siteID>>,
             LeftJoinSingleTable<Customer, On<SOShipment.customerID, Equal<Customer.bAccountID>>>>,
@@ -87,13 +87,13 @@ namespace PX.Objects.SO
 
         public abstract class barcode : IBqlField { }
         [PXString(255, IsUnicode = true)]
-        [PXUIField(DisplayName = "Barcode")]
+        [PXUIField(DisplayName = "Scan")]
         public virtual string Barcode { get; set; }
 
         public abstract class quantity : IBqlField { }
         [PXDBQuantity]
         [PXDefault(TypeCode.Decimal, "1.0")]
-        [PXUIField(DisplayName = "Quantity")]
+        [PXUIField(DisplayName = "Quantity", Enabled = false)]
         public virtual decimal? Quantity { get; set; }
 
         public abstract class scanMode : IBqlField { }
@@ -261,14 +261,18 @@ namespace PX.Objects.SO
             }
             else
             {
+                bool isShipmentFound;
                 doc.Status = ScanStatuses.Error;
-                doc.Message = PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentNbrMissing, doc.ShipmentNbr);
+                doc.Message = !IsValidShipment(doc.ShipmentNbr, out isShipmentFound) && isShipmentFound ? 
+                              PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentInvalid, doc.ShipmentNbr) :
+                              PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentNbrMissing, doc.ShipmentNbr);
+
                 SetScanState(ScanStates.ShipmentNumber);
+                doc.ShipmentNbr = null;
             }
 
             ClearScreen(false);
         }
-
 
         protected IEnumerable scanLogs()
         {
@@ -869,7 +873,7 @@ namespace PX.Objects.SO
         protected virtual void PromptForPackageWeight(bool autoCalcFailed)
         {
             var doc = this.Document.Current;
-            doc.Status = ScanStatuses.Information;
+            doc.Status = ScanStatuses.Error;
 
             if (autoCalcFailed)
             {
@@ -1366,6 +1370,22 @@ namespace PX.Objects.SO
                     return ((PXUIFieldAttribute)attribute).Enabled;
 
             return false;
+        }
+
+        private bool IsValidShipment(string shipmentNbr, out bool isShipmentFound)
+        {
+            SOShipment shipment = PXSelectReadonly2<SOShipment,
+                                  InnerJoin<INSite, On<INSite.siteID, Equal<SOShipment.siteID>>,
+                                  LeftJoinSingleTable<Customer, On<SOShipment.customerID, Equal<Customer.bAccountID>>>>,
+                                  Where<Where2<Match<INSite, Current<AccessInfo.userName>>,
+                                  And<Where2<Where<Customer.bAccountID, IsNull, Or<Match<Customer, Current<AccessInfo.userName>>>>,
+                                  And<SOShipment.shipmentNbr, Equal<Required<SOShipment.shipmentNbr>>>>>>>>.Select(this, shipmentNbr);
+
+            isShipmentFound = shipment != null;
+
+            return isShipmentFound && 
+                   shipment.Status == SOShipmentStatus.Open &&
+                   shipment.ShipmentType == SOShipmentType.Issue;
         }
 
         protected virtual void UpdateShipmentLinesWithPickResults(SOShipmentEntry graph)
