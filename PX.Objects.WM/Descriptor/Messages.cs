@@ -96,7 +96,7 @@ namespace PX.Objects.WM
         public const string ShipmentLineMissing = "Line {0} not found in shipment.";
         public const string ShipmentMissing = "Shipment not found.";
         public const string ShipmentNbrMissing = "Shipment {0} not found.";
-        public const string ShipmentInvalid = "Shipment {0} is invalid for processing.";
+        public const string ShipmentInvalid = "Shipment {0} status is invalid for processing.";
         public const string ShipmentQuantityMismatchPrompt = "The quantity picked for one or more lines doesn't match with the shipment. Do you want to continue?";
         public const string ShipmentReady = "Shipment {0} loaded and ready to pick.";
         public const string ShipmentLineQuantityNotPacked = "One or more lines for item '{0}' have quantities that have not been packed.";
