@@ -8,7 +8,7 @@
 			ctrl.element.addEventListener('keydown', function(e) {
 	            if (e.keyCode === 13) { //Enter key 
 	                e.preventDefault();
-					e.stopPropagation();
+				    e.stopPropagation();
 	                var ds = px_alls["ds"];
 	                ds.executeCallback("scan");
 				}
