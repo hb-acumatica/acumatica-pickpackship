@@ -7,8 +7,8 @@
 	    function Barcode_Initialize(ctrl) {
 			ctrl.element.addEventListener('keydown', function(e) {
 	            if (e.keyCode === 13) { //Enter key 
-	                e.preventDefault();
-				    e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation();
 	                var ds = px_alls["ds"];
 	                ds.executeCallback("scan");
 				}
@@ -58,8 +58,8 @@
 
 	<px:PXDataSource ID="ds" runat="server" Visible="True" Width="100%" TypeName="PX.Objects.SO.PickPackShip" PrimaryView="Document">
 		<CallbackCommands>
-			<px:PXDSCallbackCommand Name="Confirm" Visible="True" CommitChanges="True" />
-			<px:PXDSCallbackCommand Name="ConfirmAll" Visible="True" CommitChanges="True" />
+			<px:PXDSCallbackCommand Name="Confirm" Visible="False" CommitChanges="True" />
+			<px:PXDSCallbackCommand Name="ConfirmAll" Visible="False" CommitChanges="True" />
             <px:PXDSCallbackCommand Name="Scan" Visible="False" CommitChanges="True" />
             <px:PXDSCallbackCommand Name="Allocations" Visible="False" CommitChanges="true" DependOnGrid="grid" />
 		</CallbackCommands>

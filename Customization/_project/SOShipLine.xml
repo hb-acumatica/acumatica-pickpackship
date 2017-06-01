@@ -1,4 +1,4 @@
 ﻿<Table TableName="SOShipLine">
-    <Column TableName="SOShipLine" ColumnName="PackedQty" ColumnType="decimal" AllowNull="True" DefaultValue="0" MaxLength="25" DecimalPrecision="6" DecimalLength="25" IsNewColumn="True" IsUnicode="True" />
-    <Column TableName="SOShipLine" ColumnName="BasePackedQty" ColumnType="decimal" AllowNull="True" DefaultValue="0" MaxLength="25" DecimalPrecision="6" DecimalLength="25" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="SOShipLine" ColumnName="PackedQty" ColumnType="decimal" AllowNull="False" DefaultValue="0" MaxLength="25" DecimalPrecision="6" DecimalLength="25" IsNewColumn="True" IsUnicode="True" />
+    <Column TableName="SOShipLine" ColumnName="BasePackedQty" ColumnType="decimal" AllowNull="False" DefaultValue="0" MaxLength="25" DecimalPrecision="6" DecimalLength="25" IsNewColumn="True" IsUnicode="True" />
 </Table>

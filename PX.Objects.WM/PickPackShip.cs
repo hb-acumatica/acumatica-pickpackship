@@ -79,10 +79,9 @@ namespace PX.Objects.SO
             InnerJoin<INSite, On<INSite.siteID, Equal<SOShipment.siteID>>,
             LeftJoinSingleTable<Customer, On<SOShipment.customerID, Equal<Customer.bAccountID>>>>,
             Where2<Match<INSite, Current<AccessInfo.userName>>,
-            And<Where2<Where<Customer.bAccountID, IsNull, Or<Match<Customer, Current<AccessInfo.userName>>>>,
-            And<SOShipment.status, Equal<SOShipmentStatus.open>,
-            And<SOShipment.shipmentType, Equal<SOShipmentType.issue>>>>>>,
-            OrderBy<Desc<SOShipment.shipmentNbr>>>))]
+            And<Where<Customer.bAccountID, IsNull, Or<Match<Customer, Current<AccessInfo.userName>>>>>>>))]
+        [PXRestrictor(typeof(Where<SOShipment.status, Equal<SOShipmentStatus.open>,
+                             And<SOShipment.shipmentType, Equal<SOShipmentType.issue>>>), WM.Messages.ShipmentInvalid, typeof(SOShipment.shipmentNbr))]
         public virtual string ShipmentNbr { get; set; }
 
         public abstract class barcode : IBqlField { }
@@ -100,7 +99,7 @@ namespace PX.Objects.SO
         [PXString(1, IsFixed = true)]
         [PXStringList(new[] { ScanModes.Add, ScanModes.Remove }, new[] { PX.Objects.WM.Messages.Add, PX.Objects.WM.Messages.Remove })]
         [PXDefault(ScanModes.Add)]
-        [PXUIField(DisplayName = "Scan Mode")]
+        [PXUIField(DisplayName = "Scan Mode", Enabled = false)]
         public virtual string ScanMode { get; set; }
 
         public abstract class scanState : IBqlField { }
@@ -112,7 +111,7 @@ namespace PX.Objects.SO
         public abstract class lotSerialSearch : IBqlField { }
         [PXBool]
         [PXDefault(false)]
-        [PXUIField(DisplayName = "Search Lot/Serial Numbers", FieldClass = "LotSerial")]
+        [PXUIField(DisplayName = "Search Lot/Serial Numbers", FieldClass = "LotSerial", Enabled = false)]
         public virtual bool? LotSerialSearch { get; set; }
 
         public abstract class currentInventoryID : IBqlField { }
@@ -145,6 +144,7 @@ namespace PX.Objects.SO
         public virtual string Status { get; set; }
 
         public abstract class message : IBqlField { }
+        [PXDefault(WM.Messages.BarcodePrompt)]
         [PXString(255, IsUnicode = true)]
         [PXUIField(DisplayName = "Message", Enabled = false)]
         public virtual string Message { get; set; }
@@ -253,7 +253,7 @@ namespace PX.Objects.SO
             var doc = this.Document.Current;
             var shipment = PXSelectorAttribute.Select<PickPackInfo.shipmentNbr>(this.Document.Cache, doc);
 
-            if (shipment != null)
+            if (shipment != null && IsValidShipment(doc.ShipmentNbr))
             {
                 doc.Status = ScanStatuses.Scan;
                 doc.Message = PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentReady, doc.ShipmentNbr);
@@ -261,12 +261,9 @@ namespace PX.Objects.SO
             }
             else
             {
-                bool isShipmentFound;
                 doc.Status = ScanStatuses.Error;
-                doc.Message = !IsValidShipment(doc.ShipmentNbr, out isShipmentFound) && isShipmentFound ? 
-                              PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentInvalid, doc.ShipmentNbr) :
-                              PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentNbrMissing, doc.ShipmentNbr);
-
+                doc.Message = shipment != null ? PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentInvalid, doc.ShipmentNbr) :
+                                                 PXMessages.LocalizeFormatNoPrefix(WM.Messages.ShipmentNbrMissing, doc.ShipmentNbr);
                 SetScanState(ScanStates.ShipmentNumber);
                 doc.ShipmentNbr = null;
             }
@@ -1372,20 +1369,21 @@ namespace PX.Objects.SO
             return false;
         }
 
-        private bool IsValidShipment(string shipmentNbr, out bool isShipmentFound)
+        private bool IsValidShipment(string shipmentNbr)
         {
-            SOShipment shipment = PXSelectReadonly2<SOShipment,
-                                  InnerJoin<INSite, On<INSite.siteID, Equal<SOShipment.siteID>>,
-                                  LeftJoinSingleTable<Customer, On<SOShipment.customerID, Equal<Customer.bAccountID>>>>,
-                                  Where<Where2<Match<INSite, Current<AccessInfo.userName>>,
-                                  And<Where2<Where<Customer.bAccountID, IsNull, Or<Match<Customer, Current<AccessInfo.userName>>>>,
-                                  And<SOShipment.shipmentNbr, Equal<Required<SOShipment.shipmentNbr>>>>>>>>.Select(this, shipmentNbr);
+            object newValue = shipmentNbr;
 
-            isShipmentFound = shipment != null;
+            try
+            { 
+                Document.Cache.RaiseFieldVerifying<PickPackInfo.shipmentNbr>(Document.Current, ref newValue);
+            }
+            catch
+            {
+                // PXRestrictor clause is executed in FieldVerifying and will throw if condition is not met
+                return false;
+            }
 
-            return isShipmentFound && 
-                   shipment.Status == SOShipmentStatus.Open &&
-                   shipment.ShipmentType == SOShipmentType.Issue;
+            return true;
         }
 
         protected virtual void UpdateShipmentLinesWithPickResults(SOShipmentEntry graph)
